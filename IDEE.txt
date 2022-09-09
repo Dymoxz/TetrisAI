@@ -1,0 +1,25 @@
+select blok
+blok kleur
+spawn coords pakken [3,1]
+collision coords pakken [[3,1], [2, 2], [2, 3], [3, 3]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vrijdag half 4 riad bij fietsenstalling overvallen, TELEFOON!, fietssluetels, huissleutels, nr zn huis. 15min fietsen, zn zusje kidnappen, loes naar amreh huis, riad zusje aan arneh geven, 

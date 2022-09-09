@@ -2,8 +2,10 @@ from ast import While
 import random
 import time
 import os
-import getch
+import sys
+from turtle import width
 
+#The board
 Board = [
 ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
 ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
@@ -26,6 +28,7 @@ Board = [
 ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
 ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.']]
 
+#The board used to save the last state since a piece has been placed
 BoardBackup = [
 ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
 ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
@@ -124,17 +127,17 @@ T = [['.....',
 shapes = [S, Z, I, O, J, L, T]
 # ------------------------- #
 
-
-def createSpawnShape():
-    # shape = random.choice(shapes)
-    shape = S
-    defaultShape = shape[0]
+#create a piece with a random shape
+def createSpawnShape(shapeee):
+    shape =shapeee
+    defaultShape = shape[1]
     ynum = 0
     relCoords = []
     for y in defaultShape:
         xnum = 0
         for x in y:
             if x == '0':
+                #the relative postions of the piece
                 relX = xnum
                 relY = ynum
                 relCoord = [relX, relY]
@@ -142,10 +145,10 @@ def createSpawnShape():
             xnum += 1
         if '0' in y:
             ynum += 1
-    print(relCoords)
+    #print(relCoords)
     return shape, defaultShape, relCoords
 
-
+#spawn the piece at the top of the board
 def spawnShape(relCoords):
     for i in relCoords:
         y = i[1]
@@ -153,52 +156,82 @@ def spawnShape(relCoords):
         Board[y][x] = '0'
     return Board
 
+#
 def moveShape(xIn, yIn, bord):
     for i in relCoords:
         y = i[1]
         x = i[0]
-        if not y+b-1 <0:
-            bord[y+yIn-1][x + xIn] = '.'
+        if not y+yIn-1 <0:
+            bord[y+yIn-1][x] = '.'
     for i in relCoords:
         y = i[1]
         x = i[0]
-        bord[y+yIn][x + xIn] = '0'
-    print(b)
-
-def get_key():
-    first_char = getch.getch()
-    if first_char == '\x1b':
-        return {'[A': 'up', '[B': 'down', '[C': 'right', '[D': 'left'}[getch.getch() + getch.getch()]
-    else:
-        return first_char
+        bord[y+yIn][x] = '0'
+    # print(b)
 
 
 
 
 allBoardStates = []
-while True:
-    shape,defaultShape,relCoords = createSpawnShape()
-    Board = spawnShape(relCoords)
+prevBoard = BoardBackup
+#-------------------------#
 
+
+#main game loop
+while True:
+    shape,defaultShape,relCoords = createSpawnShape(shapes[5])
+    Board = spawnShape(relCoords)
 
     b = 0
     a = 0
+    absCoords = []
     while True:
+        underList = []
+        absCoords = []
+        xList = []
+        yList = []
+        for i in relCoords:
+            xList.append(i[0])
+            yList.append(i[1])        
+        maxX = max(xList)
+        minX = min(xList)
+        maxY = max(yList)
+        minY = min(yList)   
+        height = maxY - minY + 1
+        width = maxX - minX + 1
+
+        print('H:W =', height, width )
+
+
+        for coord in relCoords:
+            absXCoord = coord[0]+b
+            absYCoord = coord[1]+a
+            absCoords.append([absXCoord, absYCoord])
         for y in Board:
             print(' '.join(y))
         time.sleep(0.2)
         print('\n'*10)
-        os.system('clear')
-        if a <=20- 2:
+        os.system('cls')
+        print(relCoords)
+        print(absCoords)
+        #bottom of the board
+        if a <= 20 - height:
+            for l in absCoords:
+                try:
+                    under = prevBoard[l[1] + 1][l[0]]
+                    underList.append(under)
+                    print(under)
+                except:
+                    pass
             moveShape(b , a, Board)
-            a += 1
-
-        if key == 'right':
-            b += 1
-
-
-        elif a == 19:
+            if '0' not in underList:    
+                a += 1
+            else:
+                break
+        elif a == 21 - height:
             allBoardStates.append(Board)
+            prevBoard = allBoardStates[-1]
+            print('-----------------------', prevBoard)
+            # print(prevBoard.index(['.', '.', '0', '0', '.', '.', '.', '.', '.', '.']))
             # Board = BoardBackup
             break
-        print(relCoords)

@@ -1,0 +1,32 @@
+1. render bord
+    - achtergrond kleur
+    - grid
+2. create shape
+    - random shape
+    - bij shape horende kleur
+    - pak rel coords van shape
+3. render shape
+    - random begin posisitie
+    - default rotatie
+    - get abs coords
+    - render op board
+4. gravitatie
+    - pak coords van laagste punten van shape
+    - check bij alle coords 1 er onder
+    - als onder, stop en spawn niewe shape
+    - als niet, verhoog y en render
+
+
+
+
+[..........],
+[..........],
+[..........],
+[..........],
+[..........],
+[..........],
+[..0.......],
+[..000.....],
+
+[[2,6], [2,7], [3,7], [4,7]]
+

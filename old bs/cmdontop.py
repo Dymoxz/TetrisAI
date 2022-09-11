@@ -1,10 +1,8 @@
-from ast import While
+
 import random
 import time
 import os
 import sys
-from turtle import width
-
 #The board
 Board = [
 ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],

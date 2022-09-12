@@ -1,4 +1,7 @@
+import collections
 from compileall import compile_path
+from distutils.util import Mixin2to3
+from tarfile import BLOCKSIZE
 import pygame
 import random
 
@@ -132,11 +135,13 @@ def GetInShapeCoords(shapes):
             if '0' in y:
                 dy += 1
         allInShapeCoords.append(inShapeCoords)
+
     return allInShapeCoords
 
 
 def GetDimensions(shapeCoords):
     allShapeDimensions = []
+
     for coords in shapeCoords:
         xList = []
         yList = []
@@ -152,9 +157,48 @@ def GetDimensions(shapeCoords):
 
         w = maX - miX + 1  
         h = maY - miY + 1 
-        allShapeDimensions.append([w,h])
 
-    return allShapeDimensions
+        allShapeDimensions.append([w,h])
+   
+        return allShapeDimensions
+
+def GetCollisionPoints(shapeCoords):
+    allbottoms = []
+    for shape in shapeCoords:
+        bottom = []
+        for coords in shape:
+            x = coords[0]
+            y = coords[1]
+            if [x, y+1] not in shape:
+                bottom.append([x,y])
+        allbottoms.append(bottom)
+
+    allLefts = []
+    for shape in shapeCoords:
+        left = []
+        for coords in shape:
+            x = coords[0]
+            y = coords[1]
+            if [x-1, y] not in shape:
+                left.append([x,y])
+        allLefts.append(bottom)
+
+    allRights = []
+    for shape in shapeCoords:
+        right = []
+        for coords in shape:
+            x = coords[0]
+            y = coords[1]
+            if [x+1, y] not in shape:
+                right.append([x,y])
+        allRights.append(bottom)
+
+
+
+    return allbottoms, allLefts, allRights
+                
+
+
 # rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
 # pygame.draw.rect(screen, currentColour, rect)    
 def RenderShape(shapeCoords, color, startX, startY, rotation):
@@ -165,8 +209,7 @@ def RenderShape(shapeCoords, color, startX, startY, rotation):
         rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
         pygame.draw.rect(screen, color, rect)
 
-
-def DrawBoard(placedShapes, usedColours, h, rot, cShape):
+def DrawBoard():
     global blockSize
     global boardColours
     #grid
@@ -174,25 +217,26 @@ def DrawBoard(placedShapes, usedColours, h, rot, cShape):
         for y in range(0, height, blockSize):
             rect = pygame.Rect(x, y, blockSize, blockSize)
             pygame.draw.rect(screen, gray, rect, 1)
-    
 
-    print('----')
-    print(f'placedShapes {placedShapes}')
-    print(f'usedcolours {usedColours}')
-    print(f'rotation {rot}')  
-    for shape in placedShapes:
+def DrawPlacedShapes(boardDict):
+    global blockSize
+    c = boardDict["shapeCoords"]
+    col = boardDict["colours"]
+    rot = boardDict["rotations"]
+    i = 0
+    for shape in c:
         for coords in shape:
             x = coords[0]
-            y = coords[1] - h
-            print('yyyyyyyyy', y)
-            erect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
-            try:
-                pygame.draw.rect(screen, usedColours[shapes.index(cShape)], erect)
-            except:
-                pass
+            y = coords[1]
+            rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
+            pygame.draw.rect(screen, col[i], rect)
+        i +=  1
 
-    
 
+def saveBlockState(board, absCoords, currentShape, rotation):
+    board["shapeCoords"].append(absCoords)
+    board["colours"].append(colours[shapes.index(currentShape)])
+    board["rotations"].append(rotation)
 
 def main():
     running = True
@@ -200,49 +244,109 @@ def main():
     clock = pygame.time.Clock()
     tLast = 0
     board = []
-    boardColours = []
-    dimensionList = []
-    boardRotations = []
+    board = {
+        "shapeCoords": [],
+        "colours": [],
+        "rotations": []
+    }
+
+
+    gogogo = True
     while running:
         currentShape = random.choice(shapes)
         rotation = 0
         allInShapeCoords = GetInShapeCoords(currentShape)
         dimensionList = GetDimensions(allInShapeCoords)
         w, h = dimensionList[rotation]
-        x = random.randrange(0, 10 - w)
+        x = 3
         y = 0
-        for inShapeCoords in allInShapeCoords:
-                print(inShapeCoords)
+        tLast = 0
         absCoords = []
         while dropping:
+            # for bottom in bottoms:
+
+
+
+            absCoords = []
+            absColPoints = {
+                "bottoms": [],
+                "lefts": [],
+                "rights": []
+            }
+            for coord in allInShapeCoords[rotation]:
+                absCoords.append([coord[0] + x, coord[1] + y])
             dt = clock.tick()
             tLast += dt
             screen.fill(black)
             RenderShape(allInShapeCoords, colours[shapes.index(currentShape)], x, y, rotation)
-            DrawBoard(board, boardColours, h, boardRotations, currentShape)
-            # print(y)
-            # print(inShapeCoords)
-            if tLast > 100:
-                if y + h < height / blockSize:
-                    y += 1
-                else:
+            DrawBoard()
+            DrawPlacedShapes(board)
+            BottomCollision, LeftCollision, RightCollision  = GetCollisionPoints(allInShapeCoords)
+            BottomCollision = BottomCollision[rotation]
+            LeftCollision = LeftCollision[rotation]
+            RightCollision = RightCollision[rotation]
 
-                    for coord in inShapeCoords:
-                        x = coord[0] + x
-                        y = coord[1] + y
-                        absCoords.append([x, y])
-                    board.append(absCoords)
-                    boardColours.append(colours[shapes.index(currentShape)])
-                    boardRotations.append(rotation)
+            BOTcollisions = []
+            RIGHTCollisions = []
+            LEFTCollisions = []
+            if tLast > 500:
+                if y + h < height / blockSize:
+                    for coord in BottomCollision:
+                        absX = coord[0] + x
+                        absY = coord[1] + y
+                        absColPoints['bottoms'].append([absX, absY + 1])
+                        absColPoints['lefts'].append([absX, absY])
+                        absColPoints['rights'].append([absX, absY])
+                    for direction in absColPoints:
+                        for point in absColPoints[direction]:
+                            
+                            if point in board["shapeCoords"]:
+                                BOTcollisions.append(direction)
+                                break
+                            for shape in board["shapeCoords"]:
+                                if point in shape:
+                                    BOTcollisions.append('x')
+
+                    if len(BOTcollisions) == 0:
+                        y += 1
+                    else:
+                        saveBlockState(board, absCoords, currentShape, rotation)
+                        break
+                else:                    
+                    saveBlockState(board, absCoords, currentShape, rotation)
                     break
-                    y = 0
                 tLast = 0  
             # detect events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                     dropping = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RIGHT:
+                        if x + w  + 1 < width / blockSize:
+                            for coord in BottomCollision:
+                                absX = coord[0] + x
+                                absY = coord[1] + y
+                                absColPoints['bottoms'].append([absX, absY + 1])
+                                absColPoints['lefts'].append([absX, absY])
+                                absColPoints['rights'].append([absX, absY])
+                            for direction in absColPoints:
+                                for point in absColPoints[direction]:
+                                    if point in board["shapeCoords"]:
+                                        RIGHTCollisions.append(direction)
+                                        break
+                                    for shape in board["shapeCoords"]:
+                                        if point in shape:
+                                            RIGHTCollisions.append('x')
 
+                            if len(RIGHTCollisions) == 0:
+                                x += 1
+                            else:
+                                saveBlockState(board, absCoords, currentShape, rotation)
+                                break
+                    if event.key == pygame.K_LEFT:
+                        if x  >= 0:
+                            x -= 1
             pygame.display.update()
     pygame.quit()
 main()

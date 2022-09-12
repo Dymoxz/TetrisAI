@@ -261,6 +261,7 @@ def main():
         x = 3
         y = 0
         tLast = 0
+        pp = 0
         absCoords = []
         while dropping:
             # for bottom in bottoms:
@@ -289,7 +290,7 @@ def main():
             BOTcollisions = []
             RIGHTCollisions = []
             LEFTCollisions = []
-            if tLast > 500:
+            if tLast > 100:
                 if y + h < height / blockSize:
                     for coord in BottomCollision:
                         absX = coord[0] + x
@@ -318,6 +319,7 @@ def main():
                 tLast = 0  
             # detect events
             for event in pygame.event.get():
+                pygame.key.set_repeat(200, 100)
                 if event.type == pygame.QUIT:
                     running = False
                     dropping = False
@@ -325,7 +327,7 @@ def main():
                     if event.key == pygame.K_RIGHT:
                         if x + w  + 1 < width / blockSize:
                             for coord in BottomCollision:
-                                absX = coord[0] + x
+                                absX = coord[0] + x + 1
                                 absY = coord[1] + y
                                 absColPoints['bottoms'].append([absX, absY + 1])
                                 absColPoints['lefts'].append([absX, absY])
@@ -341,12 +343,56 @@ def main():
 
                             if len(RIGHTCollisions) == 0:
                                 x += 1
-                            else:
-                                saveBlockState(board, absCoords, currentShape, rotation)
-                                break
                     if event.key == pygame.K_LEFT:
-                        if x  >= 0:
-                            x -= 1
+                        if x > -1:
+                            for coord in BottomCollision:
+                                absX = coord[0] + x - 1
+                                absY = coord[1] + y
+                                absColPoints['bottoms'].append([absX, absY + 1])
+                                absColPoints['lefts'].append([absX, absY])
+                                absColPoints['rights'].append([absX, absY])
+                            for direction in absColPoints:
+                                for point in absColPoints[direction]:
+                                    if point in board["shapeCoords"]:
+                                        LEFTCollisions.append(direction)
+                                        break
+                                    for shape in board["shapeCoords"]:
+                                        if point in shape:
+                                            LEFTCollisions.append('x')
+
+                            if len(LEFTCollisions) == 0:
+                                        x -= 1
+                    if event.key == pygame.K_DOWN:
+                        if y + h < height / blockSize:
+                            for coord in BottomCollision:
+                                absX = coord[0] + x
+                                absY = coord[1] + y + 1
+                                absColPoints['bottoms'].append([absX, absY + 1])
+                                absColPoints['lefts'].append([absX, absY])
+                                absColPoints['rights'].append([absX, absY])
+                            for direction in absColPoints:
+                                for point in absColPoints[direction]:
+                                    if point in board["shapeCoords"]:
+                                        BOTcollisions.append(direction)
+                                        break
+                                    for shape in board["shapeCoords"]:
+                                        if point in shape:
+                                            BOTcollisions.append('x')
+
+                            if len(BOTcollisions) == 0:
+                                y += 1
+                    if event.key == pygame.K_SPACE:
+                        boardYCoords = []
+                        for shapeeeeeee in board['shapeCoords']:
+                            for coord in shapeeeeeee:
+                                if coord[0] == x:
+                                    boardYCoords.append(coord[1])
+                        if len(boardYCoords) == 0:
+                            minYCoordOnBoard = 20
+                        else:
+                            minYCoordOnBoard = min(boardYCoords)
+                        y = minYCoordOnBoard - h - 1
+                    
             pygame.display.update()
     pygame.quit()
 main()

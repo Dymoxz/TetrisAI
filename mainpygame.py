@@ -1,7 +1,3 @@
-import collections
-from compileall import compile_path
-from distutils.util import Mixin2to3
-from tarfile import BLOCKSIZE
 import pygame
 import random
 
@@ -238,6 +234,14 @@ def saveBlockState(board, absCoords, currentShape, rotation):
     board["colours"].append(colours[shapes.index(currentShape)])
     board["rotations"].append(rotation)
 
+def remLastPos(abycordy):
+    for coord in abycordy:
+        aaa = coord[0] 
+        bbb = coord[1]
+        rect = pygame.Rect(aaa * blockSize, bbb * blockSize, blockSize, blockSize)
+        pygame.draw.rect(screen, black, rect)
+
+
 def main():
     running = True
     dropping = True
@@ -249,7 +253,6 @@ def main():
         "colours": [],
         "rotations": []
     }
-
 
     gogogo = True
     while running:
@@ -263,6 +266,7 @@ def main():
         tLast = 0
         pp = 0
         absCoords = []
+        DrawPlacedShapes(board)
         while dropping:
             # for bottom in bottoms:
 
@@ -278,10 +282,10 @@ def main():
                 absCoords.append([coord[0] + x, coord[1] + y])
             dt = clock.tick()
             tLast += dt
-            screen.fill(black)
+           # screen.fill(black)
             RenderShape(allInShapeCoords, colours[shapes.index(currentShape)], x, y, rotation)
             DrawBoard()
-            DrawPlacedShapes(board)
+            # DrawPlacedShapes(board)
             BottomCollision, LeftCollision, RightCollision  = GetCollisionPoints(allInShapeCoords)
             BottomCollision = BottomCollision[rotation]
             LeftCollision = LeftCollision[rotation]
@@ -300,7 +304,6 @@ def main():
                         absColPoints['rights'].append([absX, absY])
                     for direction in absColPoints:
                         for point in absColPoints[direction]:
-                            
                             if point in board["shapeCoords"]:
                                 BOTcollisions.append(direction)
                                 break
@@ -309,6 +312,7 @@ def main():
                                     BOTcollisions.append('x')
 
                     if len(BOTcollisions) == 0:
+                        remLastPos(absCoords)
                         y += 1
                     else:
                         saveBlockState(board, absCoords, currentShape, rotation)
@@ -342,6 +346,7 @@ def main():
                                             RIGHTCollisions.append('x')
 
                             if len(RIGHTCollisions) == 0:
+                                remLastPos(absCoords)
                                 x += 1
                     if event.key == pygame.K_LEFT:
                         if x > -1:
@@ -361,7 +366,8 @@ def main():
                                             LEFTCollisions.append('x')
 
                             if len(LEFTCollisions) == 0:
-                                        x -= 1
+                                remLastPos(absCoords)
+                                x -= 1
                     if event.key == pygame.K_DOWN:
                         if y + h < height / blockSize:
                             for coord in BottomCollision:
@@ -380,18 +386,8 @@ def main():
                                             BOTcollisions.append('x')
 
                             if len(BOTcollisions) == 0:
+                                remLastPos(absCoords)
                                 y += 1
-                    if event.key == pygame.K_SPACE:
-                        boardYCoords = []
-                        for shapeeeeeee in board['shapeCoords']:
-                            for coord in shapeeeeeee:
-                                if coord[0] == x:
-                                    boardYCoords.append(coord[1])
-                        if len(boardYCoords) == 0:
-                            minYCoordOnBoard = 20
-                        else:
-                            minYCoordOnBoard = min(boardYCoords)
-                        y = minYCoordOnBoard - h - 1
                     
             pygame.display.update()
     pygame.quit()

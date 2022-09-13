@@ -210,13 +210,12 @@ def RenderShape(shapeCoords, color, startX, startY, rotation):
         pygame.draw.rect(screen, color, rect)
 
 
-
-
-
 running = True
 dropping = True
 rotation = 0
 beginShape = random.choice(allShapesCoordsREL)
+
+
 while running:
     # Get Current and next shape to spawn
     try:

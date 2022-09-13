@@ -264,14 +264,10 @@ def main():
         x = 3
         y = 0
         tLast = 0
-        pp = 0
         absCoords = []
+
         DrawPlacedShapes(board)
         while dropping:
-            # for bottom in bottoms:
-
-
-
             absCoords = []
             absColPoints = {
                 "bottoms": [],
@@ -294,6 +290,7 @@ def main():
             BOTcollisions = []
             RIGHTCollisions = []
             LEFTCollisions = []
+
             if tLast > 100:
                 if y + h < height / blockSize:
                     for coord in BottomCollision:

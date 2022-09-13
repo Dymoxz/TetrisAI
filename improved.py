@@ -1,7 +1,7 @@
 from ast import excepthandler
 import pygame
 import random
-
+import time
 #initalize pygame window
 pygame.init()
 width, height = 480, 960
@@ -128,6 +128,9 @@ def pprint(shape):
 
 
 def initShapes(shapeee):
+
+    # create rotated versions of shape
+    # add the rotated version to a new list called fullShapes
     for shape in shapeee:
         shape2 = []
         for rotShape in shape:
@@ -141,6 +144,7 @@ def initShapes(shapeee):
 
         fullShapes.append(shape2)
 
+    # ger the relative coords of all the shapes
     fullShapesCoordsREL = []
     for shapes in fullShapes:
         shapeList = []
@@ -153,65 +157,61 @@ def initShapes(shapeee):
                         rotList.append(coord)
             shapeList.append(rotList)
         fullShapesCoordsREL.append(shapeList)
-    return fullShapesCoordsREL
 
+    # get all the minimum x and y values of all the shapes
+    allMinXY = []
+    for shape in fullShapesCoordsREL:
+        shapeMinXY = []
+        for rotation in shape:
+            xList = []
+            yList = []
+            for coord in rotation:
+                xList.append(coord[0])
+                yList.append(coord[1])
+            xMin = min(xList)
+            yMin = min(yList)
+            shapeMinXY.append([xMin,yMin])
+        allMinXY.append(shapeMinXY)
+
+    # move all the shapes so they are closest to the top left (0,0)
+    allNew = []
+    for shapeI in range(len(fullShapesCoordsREL)):
+        newShape = []
+        for rotI in range(len(fullShapesCoordsREL[shapeI])):
+            newRotation = []
+            for coordI in range(len(fullShapesCoordsREL[shapeI][rotI])):
+                newCoord = []
+                newCoord = [fullShapesCoordsREL[shapeI][rotI][coordI][0] - allMinXY[shapeI][rotI][0], fullShapesCoordsREL[shapeI][rotI][coordI][1] - allMinXY[shapeI][rotI][1]]
+                newRotation.append(newCoord)
+            newShape.append(newRotation)
+        allNew.append(newShape)
+    return allNew
+
+
+# get all the data from the shapes
 allShapesCoordsREL = initShapes(shapes)
-
-
-# [[2,1],[1,2],[2,2],[3,2]]
-
-# laagste y = [2,1]
-# 0 -> 1 = 1
-# yOffset = 1
-
-# laagste x = [1,2]
-# 0 -> 1 = 1
-# xOffset = 1
-
-# for elke coordinaat-
-# offset met x en y offset
-MIN = []
-MAX = []
-allMinXY = []
-for shape in allShapesCoordsREL:
-    shapeMinXY = []
-    for rotation in shape:
-        xList = []
-        yList = []
-        for coord in rotation:
-            xList.append(coord[0])
-            yList.append(coord[1])
-        xMin = min(xList)
-        yMin = min(yList)
-        shapeMinXY.append([xMin,yMin])
-    allMinXY.append(shapeMinXY)
-
-allNew = []
-for shapeI in range(len(allShapesCoordsREL)):
-    newShape = []
-    for rotI in range(len(allShapesCoordsREL[shapeI])):
-        newRotation = []
-        for coordI in range(len(allShapesCoordsREL[shapeI][rotI])):
-            newCoord = []
-            # allShapesCoordsREL[shapeI][rotI][coordI][0] += allMinXY[shapeI][rotI][0][0]
-            # allShapesCoordsREL[shapeI][rotI][coordI][1] += allMinXY[shapeI][rotI][0][1]
-            # print(allShapesCoordsREL[shapeI][rotI][coordI])
-            # print(allMinXY[shapeI][rotI])
-            newCoord = [allShapesCoordsREL[shapeI][rotI][coordI][0] - allMinXY[shapeI][rotI][0], allShapesCoordsREL[shapeI][rotI][coordI][1] - allMinXY[shapeI][rotI][1]]
-            newRotation.append(newCoord)
-        newShape.append(newRotation)
-    allNew.append(newShape)
-            # print(newCoord)
 
 
 def DrawBoard():
     global blockSize
     global boardColours
-    #grid
     for x in range(0, width, blockSize):
         for y in range(0, height, blockSize):
             rect = pygame.Rect(x, y, blockSize, blockSize)
             pygame.draw.rect(screen, gray, rect, 1)
+
+
+def RenderShape(shapeCoords, color, startX, startY, rotation):
+    blockSize = 48
+    for coords in shapeCoords[rotation]:
+        x = coords[0] + startX
+        y = coords[1] + startY
+        rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
+        pygame.draw.rect(screen, color, rect)
+
+
+
+
 
 running = True
 dropping = True
@@ -224,9 +224,14 @@ while running:
     except:
         currentShape = beginShape
     nextShape = random.choice(allShapesCoordsREL)
+    currentColour = colours[allShapesCoordsREL.index(currentShape)]
 
     print(shapeNames[allShapesCoordsREL.index(currentShape)], shapeNames[allShapesCoordsREL.index(nextShape)])
-    print(allNew[allShapesCoordsREL.index(currentShape)][rotation])
+    print(allShapesCoordsREL[allShapesCoordsREL.index(currentShape)][rotation])
+    
+    RenderShape(currentShape, currentColour, 0, 0, rotation)
+
+
     while dropping:
         DrawBoard()
         pygame.display.update()
@@ -237,6 +242,7 @@ while running:
             if event.type == pygame.QUIT:
                 running = False
                 dropping = False
+
 pygame.quit()
 
 

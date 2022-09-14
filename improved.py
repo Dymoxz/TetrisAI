@@ -185,13 +185,28 @@ def initShapes(shapeee):
                 newRotation.append(newCoord)
             newShape.append(newRotation)
         allNew.append(newShape)
-    return allNew
 
+        # get the width and height of all the shapes
+    allWH = []
+    for shape in allNew:
+        shapeWH = []
+        for rotation in shape:
+            xList = []
+            yList = []
+            for coord in rotation:
+                xList.append(coord[0])
+                yList.append(coord[1])
+            xMax = max(xList)
+            yMax = max(yList)
+            shapeWH.append([xMax + 1,yMax + 1])
+        allWH.append(shapeWH)
+
+    return allNew, allWH
 
 # get all the data from the shapes
-allShapesCoordsREL = initShapes(shapes)
+allShapesCoordsREL, allWH = initShapes(shapes)
 
-
+print(allWH)
 def DrawBoard():
     global blockSize
     global boardColours
@@ -271,17 +286,21 @@ while running:
     tLast = 0
     absCoords = GetAbsCoords(currentShape, x, y, rotation)
     RenderShape(absCoords, currentColour)
+    dropping = True
     while dropping:
         dt = clock.tick()
         tLast += dt
         DrawBoard()
         pygame.display.update()
 
-        if tLast > 700:
+        if tLast > 50:
+            print(board)
             absCoords = GetAbsCoords(currentShape, x, y, rotation)
             down, left, right = CheckCollision(absCoords, 'down')
-            if len(down) > 0 or y > height / blockSize - 1:
+            w, h = allWH[allShapesCoordsREL.index(currentShape)][rotation][0], allWH[allShapesCoordsREL.index(currentShape)][rotation][1]
+            if len(down) > 0 or y > 19 - h:
                 dropping = False
+                board['shapeCoords'].extend(absCoords)
             else:
                 remLastPos(currentShape, x, y,rotation)
                 y += 1

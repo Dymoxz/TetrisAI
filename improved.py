@@ -201,19 +201,57 @@ def DrawBoard():
             pygame.draw.rect(screen, gray, rect, 1)
 
 
-def RenderShape(shapeCoords, color, startX, startY, rotation):
+def RenderShape(shapeCoords, color):
     blockSize = 48
-    for coords in shapeCoords[rotation]:
-        x = coords[0] + startX
-        y = coords[1] + startY
+    for coords in shapeCoords:
+        x = coords[0]
+        y = coords[1]
         rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
         pygame.draw.rect(screen, color, rect)
+
+
+def remLastPos(abycordy, ax, by,rotation):
+    for coord in abycordy[rotation]:
+        aaa = coord[0] + ax
+        bbb = coord[1] + by
+        eerect = pygame.Rect(aaa * blockSize, bbb * blockSize, blockSize, blockSize)
+        pygame.draw.rect(screen, black, eerect)
+
+def CheckCollision(shapeCoords, direction):
+    downCollisions = []
+    rightCollisions = []
+    leftCollisions = []
+    for coord in shapeCoords:
+        xCoord = coord[0]
+        yCoord = coord[1]
+        if direction == 'down':
+            if [xCoord, yCoord + 1] in board['shapeCoords']:
+                downCollisions.append('collision')
+        if direction == 'left':
+            if [xCoord - 1, yCoord] in board['shapeCoords']:
+                leftCollisions.append('collision')
+        if direction == 'right':
+            if [xCoord + 1, yCoord] in board['shapeCoords']:
+                rightCollisions.append('collision')
+    return downCollisions, rightCollisions, leftCollisions
+        
+def GetAbsCoords(shapeCoords, x, y, rotation):
+    absCoords = []
+    for coord in shapeCoords[rotation]:
+        absCoords.append([coord[0] + x, coord[1] + y])
+    return absCoords
 
 
 running = True
 dropping = True
 rotation = 0
 beginShape = random.choice(allShapesCoordsREL)
+clock = pygame.time.Clock()
+board = {
+    "shapeCoords": [],
+    "colours": [],
+    "rotations": []
+}
 
 
 while running:
@@ -228,20 +266,52 @@ while running:
     print(shapeNames[allShapesCoordsREL.index(currentShape)], shapeNames[allShapesCoordsREL.index(nextShape)])
     print(allShapesCoordsREL[allShapesCoordsREL.index(currentShape)][rotation])
     
-    RenderShape(currentShape, currentColour, 0, 0, rotation)
-
-
+    y = 0
+    x = 0
+    tLast = 0
+    absCoords = GetAbsCoords(currentShape, x, y, rotation)
+    RenderShape(absCoords, currentColour)
     while dropping:
+        dt = clock.tick()
+        tLast += dt
         DrawBoard()
         pygame.display.update()
 
+        if tLast > 700:
+            absCoords = GetAbsCoords(currentShape, x, y, rotation)
+            down, left, right = CheckCollision(absCoords, 'down')
+            if len(down) > 0 or y > height / blockSize - 1:
+                dropping = False
+            else:
+                remLastPos(currentShape, x, y,rotation)
+                y += 1
+                absCoords = GetAbsCoords(currentShape, x, y, rotation)
+                RenderShape(absCoords, currentColour)
+                tLast = 0
 
         for event in pygame.event.get():
             pygame.key.set_repeat(200, 100)
             if event.type == pygame.QUIT:
                 running = False
                 dropping = False
-
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    remLastPos(currentShape, x, y,rotation)
+                    x += 1
+                    absCoords = GetAbsCoords(currentShape, x, y, rotation)
+                    RenderShape(absCoords, currentColour) 
+                if event.key == pygame.K_LEFT:
+                    remLastPos(currentShape, x, y,rotation)
+                    x -= 1
+                    absCoords = GetAbsCoords(currentShape, x, y, rotation)
+                    RenderShape(absCoords, currentColour) 
+                if event.key == pygame.K_UP:
+                    remLastPos(currentShape, x, y,rotation)
+                    rotation += 1
+                    if rotation > 3:
+                        rotation = 0
+                    absCoords = GetAbsCoords(currentShape, x, y, rotation)
+                    RenderShape(absCoords, currentColour) 
 pygame.quit()
 
 

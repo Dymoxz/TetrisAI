@@ -262,6 +262,19 @@ def GetAbsCoords(shapeCoords, x, y, rotation):
     return absCoords
 
 
+def clearLines(lines):
+    # lines = ycoord i.e. 3
+    bboard = board
+    for y in lines:
+        for coord in board['shapeCoords']:
+            if coord[1] == y:
+                bboard['shapeCoords'].pop(bboard['shapeCoords'].index(coord))
+                bboard['colours'].pop(bboard['colours'].index(coord))
+    screen.fill(black)
+    DrawBoard()
+    for coord in bboard:
+        RenderShape(bboard['shapeCoords'], bboard['colours'])
+
 # rotaion += 1 zonder te renderen
 # pak die coords
 # if coords in board
@@ -312,15 +325,15 @@ while running:
         
         ghostCoords = []
         underY = []
-        for coord in absCoords:
-            if len(board['shapeCoords']) == 0:
-                checkyr = board['bottomCoords']
-            else:
-                checkyr = board['shapeCoords']
-            for coordy in checkyr:
-                if coordy[0] == coord[0]:
-                    underY.append(coordy[1])
-            ghostCoords.append([coord[0], underY[absCoords.index(coord)]])
+        # for coord in absCoords:
+        #     if len(board['shapeCoords']) == 0:
+        #         checkyr = board['bottomCoords']
+        #     else:
+        #         checkyr = board['shapeCoords']
+        #     for coordy in checkyr:
+        #         if coordy[0] == coord[0]:
+        #             underY.append(coordy[1])
+        #     ghostCoords.append([coord[0], underY[absCoords.index(coord)]])
 
         for coord in ghostCoords:
             print(coord)
@@ -337,10 +350,46 @@ while running:
                 if bb > 500:
                     dropping = False
                     board['shapeCoords'].extend(absCoords)
+                    board['colours'].extend([currentColour] * len(absCoords))
+
+
+                    # yFill = []
+                    # clearLines = []
+                    # for coords in board['shapeCoords']:
+                    #     yList = []
+                    #     yList.append(coords[1])
+                    #     for i in range(0,19):
+                    #         aaa = yList.count(i)
+                    #         yFill.append(aaa)
+                    # for line in range(0,19):
+                    #     if yFill[line] == 10:
+                    #         clearedline = line
+                    #         clearLines.append(clearedline)
+                    #         removeLine(clearedline)
+                    # bboard = board
+                    # for coords in board['shapeCoords']:
+                    #     if coords[1] > clearedline:
+                    yFill = []
+                    linesToBeCleared = []
+                    for coords in board['shapeCoords']:
+                        yList = []
+                        yList.append(coords[1])
+                        for i in range(0,19):
+                            aaa = yList.count(i)
+                            yFill.append(aaa)
+                    for line in range(0,19):
+                        if yFill[line] == 10:
+                            clearedline = line
+                            linesToBeCleared.append(clearedline)
+                    if len(linesToBeCleared) > 0:
+                        clearLines(linesToBeCleared)
+                        
+
+
             else:
                 remLastPos(currentShape, x, y,rotation)
                 y += 1
-                absCoords = GetAbsCoords(currentShape, x, y, rotation)
+                absCoords  =GetAbsCoords(currentShape, x, y, rotation)
                 RenderShape(absCoords, currentColour)
                 tLast = 0
                 bb = 0

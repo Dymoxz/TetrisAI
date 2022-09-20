@@ -308,7 +308,7 @@ while running:
     print(allShapesCoordsREL[allShapesCoordsREL.index(currentShape)][rotation])
     
     y = 0
-    x = 0
+    x = 3
     tLast = 0
     bb = 0
     rotation = 0
@@ -353,22 +353,7 @@ while running:
                     board['colours'].extend([currentColour] * len(absCoords))
 
 
-                    # yFill = []
-                    # clearLines = []
-                    # for coords in board['shapeCoords']:
-                    #     yList = []
-                    #     yList.append(coords[1])
-                    #     for i in range(0,19):
-                    #         aaa = yList.count(i)
-                    #         yFill.append(aaa)
-                    # for line in range(0,19):
-                    #     if yFill[line] == 10:
-                    #         clearedline = line
-                    #         clearLines.append(clearedline)
-                    #         removeLine(clearedline)
-                    # bboard = board
-                    # for coords in board['shapeCoords']:
-                    #     if coords[1] > clearedline:
+
                     yFill = []
                     linesToBeCleared = []
                     for coords in board['shapeCoords']:
@@ -382,7 +367,8 @@ while running:
                             clearedline = line
                             linesToBeCleared.append(clearedline)
                     if len(linesToBeCleared) > 0:
-                        clearLines(linesToBeCleared)
+                        print('cleared lines', linesToBeCleared)
+                        # clearLines(linesToBeCleared)
                         
 
 

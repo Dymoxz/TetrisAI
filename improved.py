@@ -206,7 +206,6 @@ def initShapes(shapeee):
 # get all the data from the shapes
 allShapesCoordsREL, allWH = initShapes(shapes)
 
-print(allWH)
 def DrawBoard():
     global blockSize
     global boardColours
@@ -223,6 +222,14 @@ def RenderShape(shapeCoords, color):
         y = coords[1]
         rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
         pygame.draw.rect(screen, color, rect)
+
+def renderBoardAfterClear(shapeCoords, color):
+    blockSize = 48
+    for coords in range(len(shapeCoords)):
+        x = shapeCoords[coords][0]
+        y = shapeCoords[coords][1]
+        rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
+        pygame.draw.rect(screen, color[coords], rect)
 
 
 def remLastPos(abycordy, ax, by,rotation):
@@ -262,19 +269,29 @@ def GetAbsCoords(shapeCoords, x, y, rotation):
     return absCoords
 
 
-def clearLines(lines):
-    # lines = ycoord i.e. 3
-    bboard = board
-    for y in lines:
-        for coord in board['shapeCoords']:
-            if coord[1] == y:
-                bboard['shapeCoords'].pop(bboard['shapeCoords'].index(coord))
-                bboard['colours'].pop(bboard['colours'].index(coord))
+def clearLines(lineCoords, lineY):
+    # # lines = ycoord i.e. 3
+    # KUT = bordje
+    # for yc in lines:
+    #     for coord in bordje['shapeCoords']:
+    #         if coord[1] == yc:
+    #             KUT['colours'].pop(KUT['shapeCoords'].index(coord))
+    #             KUT['shapeCoords'].remove(coord)
+    # screen.fill(black)
+    # DrawBoard()
+    # renderBoardAfterClear(KUT['shapeCoords'], KUT['colours'])
+    # return KUT
+    for coord in lineCoords:
+        board['colours'].pop(board['shapeCoords'].index(coord))
+        board['shapeCoords'].remove(coord)
     screen.fill(black)
     DrawBoard()
-    for coord in bboard:
-        RenderShape(bboard['shapeCoords'], bboard['colours'])
 
+    for coord in board['shapeCoords']:
+        if coord[1] < min(lineY):
+            board['shapeCoords'][board['shapeCoords'].index(coord)][1] += len(lineY)
+
+    renderBoardAfterClear(board['shapeCoords'], board['colours'])
 # rotaion += 1 zonder te renderen
 # pak die coords
 # if coords in board
@@ -300,12 +317,12 @@ while running:
         currentShape = nextShape
     except:
         currentShape = beginShape
-    # currentShape = allShapesCoordsREL[2]
+    # currentShape = allShapesCoordsREL[3]
     nextShape = random.choice(allShapesCoordsREL)
     currentColour = colours[allShapesCoordsREL.index(currentShape)]
 
-    print(shapeNames[allShapesCoordsREL.index(currentShape)], shapeNames[allShapesCoordsREL.index(nextShape)])
-    print(allShapesCoordsREL[allShapesCoordsREL.index(currentShape)][rotation])
+    # print(shapeNames[allShapesCoordsREL.index(currentShape)], shapeNames[allShapesCoordsREL.index(nextShape)])
+    # print(allShapesCoordsREL[allShapesCoordsREL.index(currentShape)][rotation])
     
     y = 0
     x = 3
@@ -336,7 +353,6 @@ while running:
         #     ghostCoords.append([coord[0], underY[absCoords.index(coord)]])
 
         for coord in ghostCoords:
-            print(coord)
             rect = pygame.Rect(coord[0] * blockSize, coord[1] * blockSize, blockSize, blockSize)
             pygame.draw.rect(screen, currentColour, rect)
 
@@ -351,26 +367,21 @@ while running:
                     dropping = False
                     board['shapeCoords'].extend(absCoords)
                     board['colours'].extend([currentColour] * len(absCoords))
-
-
-
                     yFill = []
+                    coordsToClear = []
                     linesToBeCleared = []
-                    for coords in board['shapeCoords']:
-                        yList = []
-                        yList.append(coords[1])
-                        for i in range(0,19):
-                            aaa = yList.count(i)
-                            yFill.append(aaa)
-                    for line in range(0,19):
-                        if yFill[line] == 10:
-                            clearedline = line
-                            linesToBeCleared.append(clearedline)
+                    for coord in board['shapeCoords']:
+                        yFill.append(coord[1])
+                    for y in yFill:
+                        if yFill.count(y) == 10 and y not in linesToBeCleared:
+                            linesToBeCleared.append(y)
+                    print(linesToBeCleared)
+                    for line in linesToBeCleared:
+                        for coord in board['shapeCoords']:
+                            if coord[1] == line:
+                                coordsToClear.append(coord)
                     if len(linesToBeCleared) > 0:
-                        print('cleared lines', linesToBeCleared)
-                        # clearLines(linesToBeCleared)
-                        
-
+                        clearLines(coordsToClear, linesToBeCleared)
 
             else:
                 remLastPos(currentShape, x, y,rotation)
@@ -381,7 +392,7 @@ while running:
                 bb = 0
 
         for event in pygame.event.get():
-            pygame.key.set_repeat(200, 100)
+            pygame.key.set_repeat(150, 150)
             if event.type == pygame.QUIT:
                 running = False
                 dropping = False

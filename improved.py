@@ -4,7 +4,7 @@ import random
 import time
 #initalize pygame window
 pygame.init()
-width, height = 480, 960
+width, height = 640, 960
 blockSize = 48
 screen = pygame.display.set_mode((width, height))
 
@@ -207,7 +207,7 @@ allShapesCoordsREL, allWH = initShapes(shapes)
 def DrawBoard():
     global blockSize
     global boardColours
-    for x in range(0, width, blockSize):
+    for x in range(0, 480, blockSize):
         for y in range(0, height, blockSize):
             rect = pygame.Rect(x, y, blockSize, blockSize)
             pygame.draw.rect(screen, gray, rect, 1)
@@ -382,6 +382,7 @@ while running:
                                 clearStreak += 1
                                 if int(i) == 4:
                                     thetStreak += 1
+                                    clearStreak = 0
                                 elif int(i) < 4:
                                     thetStreak = 0
                                 if int(i) == 4 and thetStreak > 1:

@@ -114,7 +114,11 @@ T = [['.....',
     '..00.',
     '..0..',
     '.....']]
-
+bozo = [['00000',
+    '00000',
+    '00000',
+    '00000',
+    '00000']]
 shapes = [S, Z, I, O, J, L, T]
 shapeNames = ['S', 'Z', 'I', 'O', 'J', 'L', 'T']
 fullShapes = []
@@ -378,7 +382,7 @@ while running:
                                 clearStreak += 1
                                 if int(i) == 4:
                                     thetStreak += 1
-                                else:
+                                elif int(i) < 4:
                                     thetStreak = 0
                                 if int(i) == 4 and thetStreak > 1:
                                     score += round(scoreDict[i] * 0.5)
@@ -387,6 +391,7 @@ while running:
                                 
                     else:
                         clearStreak = 0
+                        thetStreak = 0
                     print('Score: ' + str(score) + '\n' +
                           ' Clear Streak: ' + str(clearStreak) + '\n' +
                           ' Tetris Streak: ' + str(thetStreak) +  '\n' +

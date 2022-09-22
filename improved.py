@@ -16,6 +16,7 @@ yellow = 250, 252, 1
 pink = 255, 81, 188
 orange = 255, 141, 1
 purple = 159, 0, 150
+white = 255, 255, 255
 
 # 1. render bord
 #     - achtergrond kleur ✓ 
@@ -41,7 +42,7 @@ purple = 159, 0, 150
 #     - als niet, verhoog y en render
 
 
-
+# alle shapes van de Tetrominoes 
 S = [['.....',
     '......',
     '..00..',
@@ -112,11 +113,13 @@ T = [['.....',
     '..00.',
     '..0..',
     '.....']]
+
 bozo = [['00000',
     '00000',
     '00000',
     '00000',
     '00000']]
+# init stuff
 shapes = [S, Z, I, O, J, L, T]
 shapeNames = ['S', 'Z', 'I', 'O', 'J', 'L', 'T']
 fullShapes = []
@@ -133,7 +136,7 @@ colourDict = {
     'T': purple
 }
 
-
+#----------------------------#
 def initShapes(shapeee):
 
     # create rotated versions of shape
@@ -151,7 +154,7 @@ def initShapes(shapeee):
 
         fullShapes.append(shape2)
 
-    # ger the relative coords of all the shapes
+    # get the relative coords of all the shapes using complitated logic
     fullShapesCoordsREL = []
     for shapes in fullShapes:
         shapeList = []
@@ -193,7 +196,7 @@ def initShapes(shapeee):
             newShape.append(newRotation)
         allNew.append(newShape)
 
-        # get the width and height of all the shapes
+    # get the width and height of all the shapes
     allWH = []
     for shape in allNew:
         shapeWH = []
@@ -213,6 +216,7 @@ def initShapes(shapeee):
 # get all the data from the shapes
 allShapesCoordsREL, allWH = initShapes(shapes)
 
+# draw the tetris board in pygame
 def DrawBoard():
     global blockSize
     global boardColours
@@ -221,6 +225,7 @@ def DrawBoard():
             rect = pygame.Rect(x, y, blockSize, blockSize)
             pygame.draw.rect(screen, gray, rect, 1)
 
+#render the tetrominoes on the board in pygame
 def RenderShape(shapeCoords, color):
     blockSize = 48
     for coords in shapeCoords:
@@ -229,6 +234,7 @@ def RenderShape(shapeCoords, color):
         rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
         pygame.draw.rect(screen, color, rect)
 
+#render the board in pygame after a line(s) has been cleared
 def renderBoardAfterClear(shapeCoords, color):
     blockSize = 48
     for coords in range(len(shapeCoords)):
@@ -237,6 +243,7 @@ def renderBoardAfterClear(shapeCoords, color):
         rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
         pygame.draw.rect(screen, color[coords], rect)
 
+#remove the coords of the tetrominoes' last postion from the board so that they wont render
 def remLastPos(abycordy, ax, by,rotation):
     for coord in abycordy[rotation]:
         aaa = coord[0] + ax
@@ -244,6 +251,7 @@ def remLastPos(abycordy, ax, by,rotation):
         eerect = pygame.Rect(aaa * blockSize, bbb * blockSize, blockSize, blockSize)
         pygame.draw.rect(screen, black, eerect)
 
+#check if the tetrominoes can move down, left, or right depending on the key pressed
 def CheckCollision(shapeCoords, direction):
     downCollisions = []
     rightCollisions = []
@@ -262,29 +270,35 @@ def CheckCollision(shapeCoords, direction):
             if [xCoord + 1, yCoord] in board['shapeCoords']:
                 rightCollisions.extend('collision')
         if direction == 'up':
-            if [xCoord, yCoord] in board['shapeCoords'] or [xCoord, yCoord] in board['bottomCoords']:
+            if [xCoord, yCoord] in board['shapeCoords'] or [xCoord, yCoord] in board['bottomCoords'] or [xCoord, yCoord] in board['sideCoords']:
                 upCollisions.extend('collision')
     return downCollisions, rightCollisions, leftCollisions, upCollisions
-        
+
+#get the absolute coords of the tetrominoes    
 def GetAbsCoords(shapeCoords, x, y, rotation):
     absCoords = []
     for coord in shapeCoords[rotation]:
         absCoords.append([coord[0] + x, coord[1] + y])
     return absCoords
 
+#clear a line and draw the board again
 def clearLines(lineCoords, lineY):
     for coord in lineCoords:
         board['colours'].pop(board['shapeCoords'].index(coord))
         board['shapeCoords'].remove(coord)
     screen.fill(black)
     DrawBoard()
-
-    for coord in board['shapeCoords']:
-        if coord[1] < min(lineY):
-            board['shapeCoords'][board['shapeCoords'].index(coord)][1] += len(lineY)
+    lineY.sort(reverse=True)
+    #move the tetrominoes down by 1 for every line cleared below it
+    
+    for clearedlines in range(len(lineY)):
+        botLine = max(lineY)
+        for coord in board['shapeCoords']:
+            if coord[1] < botLine:
+                coord[1] += 1
+    lineY.remove(botLine)
 
     renderBoardAfterClear(board['shapeCoords'], board['colours'])
-
 
 def DrawNextShape(shapeCoords, color):
     #draw a black rectangle to clear the next shape area
@@ -293,9 +307,20 @@ def DrawNextShape(shapeCoords, color):
     blockSize = 30
     for coords in shapeCoords:
         x = coords[0] + 48/30 * 11
-        y = coords[1] + 1
+        y = coords[1] + 2
         rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
         pygame.draw.rect(screen, color, rect)
+        
+
+def initText():
+    pygame.font.init()
+    my_font = pygame.font.SysFont('Roboto', 40)
+    text_surface = my_font.render('NEXT', True, (255, 255, 255))
+    screen.blit(text_surface, (540,10))
+    text = my_font.render('Score: ' + str(score), True, white)
+    textRect = text.get_rect()
+    textRect.center = (540, 50)
+    screen.blit(text, textRect)
 
 
 running = True
@@ -307,11 +332,11 @@ board = {
     "shapeCoords": [],
     "colours": [],
     "rotations": [],
-    "bottomCoords": []
+    "bottomCoords": [],
+    "sideCoords": []
 }
-
 board['bottomCoords'] = [[0,20],[1,20],[2,20],[3,20],[4,20],[5,20],[6,20],[7,20],[8,20],[9,20]]
-
+board['sideCoords'] = [[10,0],[10,1],[10,2],[10,3],[10, 4],[10,5],[10,6],[10,7],[10,8],[10,9],[10,10],[10,11],[10,12],[10,13],[10,14],[10,15],[10,16],[10,17],[10,18],[10,19]]
 
 
 
@@ -333,40 +358,40 @@ thetStreak = 0
 level = 1
 # ------------------------------------------- #
 
+dictator = {
+    'shapeCoords': allShapesCoordsREL,
+    'colours': colours,
+    'names': shapeNames,
+}
 
-c = list(zip(allShapesCoordsREL, shapeNames))
-random.shuffle(c)
-shapeList, shapeNames = zip(*c)
-shapeList = list(shapeList)
-shapeNames = list(shapeNames)
-shapeNum = 0
 
+def GetShapeSequence(inputy):
+    aaaaa = list(zip(inputy['shapeCoords'], inputy['colours'], inputy['names']))
+    random.shuffle(aaaaa)
+    s, c, n = zip(*aaaaa)
+    return s, c, n
+dictator2 = dictator
+dictator2['shapeCoords'],dictator2['colours'], dictator2['names'] = GetShapeSequence(dictator)
+numero = 0
 while running:
-    # Get Current and next shape to spawn
-    # try:
-    #     currentShape = nextShape
-    # except:
-    #     currentShape = beginShape
-    # # currentShape = allShapesCoordsREL[2]
-    # nextShape = random.choice(allShapesCoordsREL)
-    # currentColour = colours[allShapesCoordsREL.index(currentShape)]
-    # nextColour = colours[allShapesCoordsREL.index(nextShape)]
-    currentShape = shapeList[shapeNum]
-    shapeNum += 1
-    if shapeNum < 6:
-        nextShape = shapeList[shapeNum]
+
+    currentShape = dictator2['shapeCoords'][numero]
+    currentColour = dictator2['colours'][numero]
+    currentName = dictator2['names'][numero]
+    if numero < 6:
+        numero += 1
     else:
-        shapeNum = 0
-        random.shuffle(shapeList)
-        nextShape = shapeList[shapeNum]
+        numero = 0
+        dictator2['shapeCoords'],dictator2['colours'], dictator2['names'] = GetShapeSequence(dictator2)
+        
+    nextShape = dictator2['shapeCoords'][numero]
+    nextColour = dictator2['colours'][numero]
+    nextName = dictator2['names'][numero]
+
     
-    currentColour = colourDict[shapeNames[allShapesCoordsREL.index(currentShape)]]
-    nextColour = colourDict[shapeNames[allShapesCoordsREL.index(nextShape)]]
+
 
     DrawNextShape(nextShape[0], nextColour)
-
-    # print(shapeNames[allShapesCoordsREL.index(currentShape)], shapeNames[allShapesCoordsREL.index(nextShape)])
-    # print(allShapesCoordsREL[allShapesCoordsREL.index(currentShape)][rotation])
     
     y = 0
     x = 3
@@ -377,7 +402,7 @@ while running:
     RenderShape(absCoords, currentColour)
     dropping = True
     while dropping:
-        dt = clock.tick()
+        dt = clock.tick(60)
         tLast += dt
         DrawBoard()
         pygame.display.update()
@@ -388,7 +413,7 @@ while running:
             pygame.draw.rect(screen, currentColour, rect)
 
 
-        if tLast > 80:
+        if tLast > 150:
             absCoords = GetAbsCoords(currentShape, x, y, rotation)
             down, right, left, up = CheckCollision(absCoords, 'down')
             w, h = allWH[allShapesCoordsREL.index(currentShape)][rotation][0], allWH[allShapesCoordsREL.index(currentShape)][rotation][1]
@@ -482,4 +507,7 @@ while running:
                         absCoords = GetAbsCoords(currentShape, x, y, rotation)
                     RenderShape(absCoords, currentColour) 
                     w, h = allWH[allShapesCoordsREL.index(currentShape)][rotation][0], allWH[allShapesCoordsREL.index(currentShape)][rotation][1]
+                # if event.key == pygame.K_c:
+                #     currentShape = shapeList[shapeNum + 1]
+                #     currentColour = colours[0]
 pygame.quit()

@@ -1,10 +1,8 @@
-from ast import excepthandler
 import pygame
 import random
-import time
 #initalize pygame window
 pygame.init()
-width, height = 640, 960
+width, height = 680, 960
 blockSize = 48
 screen = pygame.display.set_mode((width, height))
 
@@ -123,6 +121,17 @@ shapes = [S, Z, I, O, J, L, T]
 shapeNames = ['S', 'Z', 'I', 'O', 'J', 'L', 'T']
 fullShapes = []
 colours = [red, green, blue, yellow, pink, orange, purple]
+
+
+colourDict = {
+    'S': red,
+    'Z': green,
+    'I': blue,
+    'O': yellow,
+    'J': pink,
+    'L': orange,
+    'T': purple
+}
 
 
 def initShapes(shapeee):
@@ -277,6 +286,18 @@ def clearLines(lineCoords, lineY):
     renderBoardAfterClear(board['shapeCoords'], board['colours'])
 
 
+def DrawNextShape(shapeCoords, color):
+    #draw a black rectangle to clear the next shape area
+    rect = pygame.Rect(500, 0, 200, 200)
+    pygame.draw.rect(screen, black, rect)
+    blockSize = 30
+    for coords in shapeCoords:
+        x = coords[0] + 48/30 * 11
+        y = coords[1] + 1
+        rect = pygame.Rect(x * blockSize, y * blockSize, blockSize, blockSize)
+        pygame.draw.rect(screen, color, rect)
+
+
 running = True
 dropping = True
 rotation = 0
@@ -313,21 +334,36 @@ level = 1
 # ------------------------------------------- #
 
 
-
-
-
-
-
+c = list(zip(allShapesCoordsREL, shapeNames))
+random.shuffle(c)
+shapeList, shapeNames = zip(*c)
+shapeList = list(shapeList)
+shapeNames = list(shapeNames)
+shapeNum = 0
 
 while running:
     # Get Current and next shape to spawn
-    try:
-        currentShape = nextShape
-    except:
-        currentShape = beginShape
-    currentShape = allShapesCoordsREL[2]
-    nextShape = random.choice(allShapesCoordsREL)
-    currentColour = colours[allShapesCoordsREL.index(currentShape)]
+    # try:
+    #     currentShape = nextShape
+    # except:
+    #     currentShape = beginShape
+    # # currentShape = allShapesCoordsREL[2]
+    # nextShape = random.choice(allShapesCoordsREL)
+    # currentColour = colours[allShapesCoordsREL.index(currentShape)]
+    # nextColour = colours[allShapesCoordsREL.index(nextShape)]
+    currentShape = shapeList[shapeNum]
+    shapeNum += 1
+    if shapeNum < 6:
+        nextShape = shapeList[shapeNum]
+    else:
+        shapeNum = 0
+        random.shuffle(shapeList)
+        nextShape = shapeList[shapeNum]
+    
+    currentColour = colourDict[shapeNames[allShapesCoordsREL.index(currentShape)]]
+    nextColour = colourDict[shapeNames[allShapesCoordsREL.index(nextShape)]]
+
+    DrawNextShape(nextShape[0], nextColour)
 
     # print(shapeNames[allShapesCoordsREL.index(currentShape)], shapeNames[allShapesCoordsREL.index(nextShape)])
     # print(allShapesCoordsREL[allShapesCoordsREL.index(currentShape)][rotation])

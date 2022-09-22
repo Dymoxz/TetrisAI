@@ -315,13 +315,21 @@ def DrawNextShape(shapeCoords, color):
 def initText():
     pygame.font.init()
     my_font = pygame.font.SysFont('Roboto', 40)
-    text_surface = my_font.render('NEXT', True, (255, 255, 255))
-    screen.blit(text_surface, (540,10))
-    text = my_font.render('Score: ' + str(score), True, white)
-    textRect = text.get_rect()
-    textRect.center = (540, 50)
-    screen.blit(text, textRect)
 
+    text_next = my_font.render('NEXT', True, white)
+    screen.blit(text_next, (540,10))
+
+    text_textscore = my_font.render('Score:', True, white)
+    screen.blit(text_textscore, (520, 350))
+
+    text_score = my_font.render(str(score), True, white)
+    screen.blit(text_score, (540, 380))
+
+    text_level = my_font.render(f'Level {level}', True, white)
+    screen.blit(text_level, (530,900))
+
+
+    
 
 running = True
 dropping = True
@@ -358,6 +366,14 @@ thetStreak = 0
 level = 1
 # ------------------------------------------- #
 
+# speedDict = {
+#     '1': (0.8 -((level - 1) * 0.007))^(level-1),
+#     '2': 100,
+#     '3': 50,
+#     '4': 25,
+# }
+
+
 dictator = {
     'shapeCoords': allShapesCoordsREL,
     'colours': colours,
@@ -370,11 +386,17 @@ def GetShapeSequence(inputy):
     random.shuffle(aaaaa)
     s, c, n = zip(*aaaaa)
     return s, c, n
+
+
+totalLinesCleared = 0
+
+
 dictator2 = dictator
 dictator2['shapeCoords'],dictator2['colours'], dictator2['names'] = GetShapeSequence(dictator)
 numero = 0
 while running:
 
+    # ------------------ SHAPES ------------------ #
     currentShape = dictator2['shapeCoords'][numero]
     currentColour = dictator2['colours'][numero]
     currentName = dictator2['names'][numero]
@@ -387,12 +409,10 @@ while running:
     nextShape = dictator2['shapeCoords'][numero]
     nextColour = dictator2['colours'][numero]
     nextName = dictator2['names'][numero]
-
-    
-
+    # ------------------------------------------- #
 
     DrawNextShape(nextShape[0], nextColour)
-    
+    initText()
     y = 0
     x = 3
     tLast = 0
@@ -412,8 +432,7 @@ while running:
             rect = pygame.Rect(coord[0] * blockSize, coord[1] * blockSize, blockSize, blockSize)
             pygame.draw.rect(screen, currentColour, rect)
 
-
-        if tLast > 150:
+        if tLast > (0.8 -((level - 1) * 0.007))**(level-1) * 200:
             absCoords = GetAbsCoords(currentShape, x, y, rotation)
             down, right, left, up = CheckCollision(absCoords, 'down')
             w, h = allWH[allShapesCoordsREL.index(currentShape)][rotation][0], allWH[allShapesCoordsREL.index(currentShape)][rotation][1]
@@ -436,9 +455,11 @@ while running:
                             if coord[1] == line:
                                 coordsToClear.append(coord)
                     if len(linesToBeCleared) > 0:
+                        linesToBeScored = len(linesToBeCleared)
+                        totalLinesCleared += linesToBeScored
                         clearLines(coordsToClear, linesToBeCleared)
                         for i in scoreDict:
-                            if len(linesToBeCleared) == int(i):
+                            if linesToBeScored == int(i):
                                 score += scoreDict[i]  * level
                                 clearStreak += 1
                                 if int(i) == 4:

@@ -30,17 +30,26 @@ white = 255, 255, 255
 # 3. render shape
 #     - random begin positie ✓
 #     - default rotatie ✓
-#     - get abs coords
-#     - render op board
-# 5. input
-#     - detect input
-#     - move shape to side or rotate if left right or up
-# 4. gravitatie
-#     - pak coords van laagste punten van shape
-#     - check bij alle coords 1 er onder
-#     - als onder, stop en spawn niewe shape
-#     - als niet, verhoog y en render
-
+#     - get abs coords ✓
+#     - render op board ✓
+# 4. input
+#     - detect input ✓
+#     - move shape to side or rotate if left right or up ✓
+# 5. gravitatie
+#     - pak coords van laagste punten van shape ✓
+#     - check bij alle coords 1 er onder ✓
+#     - als onder, stop en spawn niewe shape ✓
+#     - als niet, verhoog y en render ✓
+# 6. clear lines
+#     - check of er een volle lijn is ✓
+#     - als er een volle lijn is ✓
+#         - pak alle coords van de lijn ✓
+#         - pak alle coords van de lijnen erboven ✓
+#         - verlaag alle coords van de lijnen erboven ✓
+#         - render alle lijnen erboven ✓
+#         - render de lijn ✓
+#         - verhoog score ✓
+# SO naar Github Copilot my G 😎
 
 # alle shapes van de Tetrominoes 
 S = [['.....',
@@ -316,6 +325,8 @@ def initText():
     pygame.font.init()
     my_font = pygame.font.SysFont('Roboto', 40)
 
+    pygame.draw.rect(screen, (0,0,0), pygame.Rect(500, 380, 130, 30))
+
     text_next = my_font.render('NEXT', True, white)
     screen.blit(text_next, (540,10))
 
@@ -327,6 +338,12 @@ def initText():
 
     text_level = my_font.render(f'Level {level}', True, white)
     screen.blit(text_level, (530,900))
+
+def GetShapeSequence(inputy):
+    aaaaa = list(zip(inputy['shapeCoords'], inputy['colours'], inputy['names']))
+    random.shuffle(aaaaa)
+    s, c, n = zip(*aaaaa)
+    return s, c, n
 
 
     
@@ -343,6 +360,8 @@ board = {
     "bottomCoords": [],
     "sideCoords": []
 }
+
+
 board['bottomCoords'] = [[0,20],[1,20],[2,20],[3,20],[4,20],[5,20],[6,20],[7,20],[8,20],[9,20]]
 board['sideCoords'] = [[10,0],[10,1],[10,2],[10,3],[10, 4],[10,5],[10,6],[10,7],[10,8],[10,9],[10,10],[10,11],[10,12],[10,13],[10,14],[10,15],[10,16],[10,17],[10,18],[10,19]]
 
@@ -381,15 +400,23 @@ dictator = {
 }
 
 
-def GetShapeSequence(inputy):
-    aaaaa = list(zip(inputy['shapeCoords'], inputy['colours'], inputy['names']))
-    random.shuffle(aaaaa)
-    s, c, n = zip(*aaaaa)
-    return s, c, n
+speedDict = {
+    '0': 48 / 60,
+    '1': 43 / 60,
+    '2': 38 / 60,
+    '3': 33 / 60,
+    '4': 28 / 60,
+    '5': 23 / 60,
+    '6': 18 / 60,
+    '7': 13 / 60,
+    '8': 8 / 60,
+    '9': 6 / 60,
+}
+
 
 
 totalLinesCleared = 0
-
+level = 1
 
 dictator2 = dictator
 dictator2['shapeCoords'],dictator2['colours'], dictator2['names'] = GetShapeSequence(dictator)
@@ -421,6 +448,13 @@ while running:
     absCoords = GetAbsCoords(currentShape, x, y, rotation)
     RenderShape(absCoords, currentColour)
     dropping = True
+
+    linesRequired = level * 5
+    print(f'lines {totalLinesCleared}/{linesRequired}   Level {level}')
+    if totalLinesCleared >= linesRequired:
+        level += 1
+        linesRequired = level * 5
+
     while dropping:
         dt = clock.tick(60)
         tLast += dt
@@ -431,11 +465,13 @@ while running:
         for coord in ghostCoords:
             rect = pygame.Rect(coord[0] * blockSize, coord[1] * blockSize, blockSize, blockSize)
             pygame.draw.rect(screen, currentColour, rect)
-
-        if tLast > (0.8 -((level - 1) * 0.007))**(level-1) * 200:
+        if str(level) in speedDict:
+            speed = speedDict[str(level)]
+        if tLast > speed * 1000:
             absCoords = GetAbsCoords(currentShape, x, y, rotation)
             down, right, left, up = CheckCollision(absCoords, 'down')
             w, h = allWH[allShapesCoordsREL.index(currentShape)][rotation][0], allWH[allShapesCoordsREL.index(currentShape)][rotation][1]
+
             if len(down) > 0 or y > 19 - h:
                 bb += dt
                 if bb > 500:
@@ -515,20 +551,33 @@ while running:
                             absCoords = GetAbsCoords(currentShape, x, y, rotation)
                     RenderShape(absCoords, currentColour) 
                 if event.key == pygame.K_UP:
-                    if rotation <3:
+                    bb += 10
+                    if rotation < 3:
                         absCoords = GetAbsCoords(currentShape, x, y, rotation + 1)
                     else:
-                        rabsCoords = GetAbsCoords(currentShape, x, y, rotation - 3)
+                        absCoords = GetAbsCoords(currentShape, x, y, rotation - 3)
                     down, right,left, up = CheckCollision(absCoords, 'up')
                     if len(up) > 0:
                         absCoords = GetAbsCoords(currentShape, x, y, rotation)
                     else:
                         remLastPos(currentShape, x, y,rotation)
-                        rotation = rotation + 1 if rotation < 3 else 0     
+                        rotation = rotation + 1 if rotation < 3 else 0
                         absCoords = GetAbsCoords(currentShape, x, y, rotation)
                     RenderShape(absCoords, currentColour) 
                     w, h = allWH[allShapesCoordsREL.index(currentShape)][rotation][0], allWH[allShapesCoordsREL.index(currentShape)][rotation][1]
-                # if event.key == pygame.K_c:
-                #     currentShape = shapeList[shapeNum + 1]
-                #     currentColour = colours[0]
-pygame.quit()
+                if event.key == pygame.K_DOWN:
+                    absCoords = GetAbsCoords(currentShape, x, y, rotation)
+                    down, right,left, up = CheckCollision(absCoords, 'down')
+                    if len(down) > 0 or y > 19 - h:
+                        pass
+                    else:
+                        remLastPos(currentShape, x, y,rotation)
+                        y += 1
+                        score += 1
+                        initText()
+                        absCoords = GetAbsCoords(currentShape, x, y, rotation)
+                    RenderShape(absCoords, currentColour) 
+                    w, h = allWH[allShapesCoordsREL.index(currentShape)][rotation][0], allWH[allShapesCoordsREL.index(currentShape)][rotation][1]
+
+
+pygame.quit()   

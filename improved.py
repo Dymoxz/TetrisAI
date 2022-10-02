@@ -446,7 +446,15 @@ while running:
     bb = 0
     rotation = 0
     absCoords = GetAbsCoords(currentShape, x, y, rotation)
+    for cordaat in absCoords:
+        if cordaat in board['shapeCoords']:
+            running = False
+            break
+            # add the score to a json file named highscores.json
+            
+
     RenderShape(absCoords, currentColour)
+
     dropping = True
 
     linesRequired = level * 5
